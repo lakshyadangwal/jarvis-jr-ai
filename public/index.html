@@ -164,6 +164,7 @@
             font-size: 0.8rem;
             cursor: pointer;
             color: #666;
+            padding: 4px;
         }
 
         .history-actions i:hover {
@@ -172,6 +173,10 @@
 
         .history-actions i.fa-thumbtack {
             color: #f39c12;
+        }
+
+        .history-actions i.fa-trash:hover {
+            color: #e74c3c;
         }
 
         .history-date {
@@ -503,6 +508,10 @@
             animation: fadeInOut 2s ease;
         }
 
+        .toast.error {
+            background: #e74c3c;
+        }
+
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateY(20px); }
             15% { opacity: 1; transform: translateY(0); }
@@ -551,13 +560,14 @@
                 <div class="avatar"><i class="fas fa-robot"></i></div>
                 <div class="bubble">
                     <strong>✨ Hello! I'm Jarvis Jr.</strong><br><br>
-                    <strong>🎯 Features:</strong><br>
+                    <strong>🎯 All Features Working:</strong><br>
                     • 📋 <strong>Copy Code</strong> - Click copy button on any code block<br>
-                    • 🎤 <strong>Voice Input</strong> - Works on Chrome, Firefox, Edge, Brave<br>
+                    • 🎤 <strong>Voice Input</strong> - Click the red mic button<br>
                     • 🔍 <strong>Search Chats</strong> - Type in search box above<br>
                     • 📌 <strong>Pin Chats</strong> - Click pin icon on any chat<br>
+                    • 🗑️ <strong>Delete Chats</strong> - Click trash icon or right-click → Delete<br>
                     • 🖱️ <strong>Right-Click Menu</strong> - Right-click on any chat<br>
-                    • ✏️ <strong>Auto Titles</strong> - Chats get named after your question<br>
+                    • ✏️ <strong>Rename Chats</strong> - Right-click → Rename<br>
                     • 📁 <strong>File Upload</strong> - Upload docs, images, code<br><br>
                     <strong>Try asking:</strong> "Write a binary search in Python"
                 </div>
@@ -592,7 +602,8 @@
             <div class="info">
                 <i class="fas fa-microphone"></i> Voice works on all browsers • 
                 <i class="fas fa-copy"></i> Copy any code block • 
-                <i class="fas fa-thumbtack"></i> Pin important chats
+                <i class="fas fa-thumbtack"></i> Pin important chats •
+                <i class="fas fa-trash"></i> Delete unwanted chats
             </div>
         </div>
     </div>
@@ -616,9 +627,18 @@
     let currentFileName = null;
     let isRecording = false;
     let recognition = null;
-    let hasSetTitle = false; // Track if title has been set for current chat
+    let hasSetTitle = false;
 
-    // ============ VOICE RECOGNITION (Cross-Browser Support) ============
+    // ============ HELPER FUNCTIONS ============
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
+    // ============ VOICE RECOGNITION ============
     function initVoiceRecognition() {
         const SpeechRecognition = window.SpeechRecognition || 
                                   window.webkitSpeechRecognition || 
@@ -630,7 +650,6 @@
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = 'en-US';
-            recognition.maxAlternatives = 1;
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
@@ -640,19 +659,7 @@
             };
 
             recognition.onerror = (event) => {
-                console.error('Speech error:', event.error);
-                let errorMsg = '';
-                switch(event.error) {
-                    case 'not-allowed':
-                        errorMsg = 'Microphone access denied. Please allow microphone access.';
-                        break;
-                    case 'no-speech':
-                        errorMsg = 'No speech detected. Please try again.';
-                        break;
-                    default:
-                        errorMsg = 'Voice error: ' + event.error;
-                }
-                showToast(errorMsg, 'error');
+                showToast('Voice error: ' + event.error, 'error');
                 voiceBtn.classList.remove('recording');
                 voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
                 isRecording = false;
@@ -666,20 +673,11 @@
             
             return true;
         } else {
-            showToast('Voice recognition not supported in this browser. Try Chrome, Edge, or Firefox!', 'error');
+            showToast('Voice not supported in this browser', 'error');
             voiceBtn.style.opacity = '0.5';
             voiceBtn.disabled = true;
             return false;
         }
-    }
-
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
-        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
     }
 
     voiceBtn.addEventListener('click', () => {
@@ -697,15 +695,14 @@
                 voiceBtn.classList.add('recording');
                 voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
             } catch (err) {
-                console.error('Start error:', err);
-                showToast('Please click the mic button again', 'error');
+                showToast('Click the mic button again', 'error');
             }
         }
     });
 
     // ============ CHAT STORAGE ============
     function loadChats() {
-        const saved = localStorage.getItem('jarvis_chats_v4');
+        const saved = localStorage.getItem('jarvis_chats_v5');
         if (saved) {
             chats = JSON.parse(saved);
         } else {
@@ -721,16 +718,11 @@
         renderHistoryList();
     }
 
-    // Generate meaningful chat title from user message
     function generateChatTitle(message) {
-        // Remove code blocks
         let title = message.replace(/```[\s\S]*?```/g, '');
-        // Remove file upload prefixes
         title = title.replace(/^📁 Uploaded:.*?\n\n/, '');
         title = title.replace(/^🖼️ Uploaded image:.*?\n\n/, '');
-        // Clean up
         title = title.trim();
-        // Limit to 50 characters
         if (title.length > 50) {
             title = title.substring(0, 47) + '...';
         }
@@ -738,32 +730,6 @@
             title = 'New Chat';
         }
         return title;
-    }
-
-    // Update chat title based on first user message
-    function updateChatTitleIfNeeded() {
-        if (hasSetTitle) return;
-        
-        // Find first user message
-        let firstUserMessage = null;
-        document.querySelectorAll('.message.user-message').forEach(msg => {
-            if (!firstUserMessage) {
-                const bubble = msg.querySelector('.bubble');
-                if (bubble) {
-                    firstUserMessage = bubble.innerText || bubble.innerHTML;
-                }
-            }
-        });
-        
-        if (firstUserMessage && chats[currentChatId]) {
-            const newTitle = generateChatTitle(firstUserMessage);
-            if (chats[currentChatId].title === 'New Chat' || !chats[currentChatId].title) {
-                chats[currentChatId].title = newTitle;
-                localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
-                renderHistoryList();
-                hasSetTitle = true;
-            }
-        }
     }
 
     function saveCurrentChat() {
@@ -775,13 +741,6 @@
             const bubble = msg.querySelector('.bubble');
             if (bubble && !msg.id?.includes('typing')) {
                 let content = bubble.innerText || bubble.innerHTML;
-                // Clean HTML for storage
-                if (!isUser) {
-                    // For bot messages, we need to preserve code blocks
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = content;
-                    content = tempDiv.innerText;
-                }
                 messages.push({
                     role: isUser ? 'user' : 'bot',
                     content: content
@@ -796,7 +755,6 @@
             if (!chats[currentChatId]) {
                 chats[currentChatId] = {};
             }
-            // Only set title if it doesn't exist or is still "New Chat"
             if (!chats[currentChatId].title || chats[currentChatId].title === 'New Chat') {
                 if (firstUserMessage) {
                     chats[currentChatId].title = generateChatTitle(firstUserMessage);
@@ -810,7 +768,7 @@
                 messages: messages,
                 pinned: chats[currentChatId]?.pinned || false
             };
-            localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+            localStorage.setItem('jarvis_chats_v5', JSON.stringify(chats));
             renderHistoryList();
         }
     }
@@ -824,7 +782,7 @@
             addMessageToUI(msg.role, msg.content, false);
         });
         currentChatId = chatId;
-        hasSetTitle = true; // Title already exists for this chat
+        hasSetTitle = true;
         renderHistoryList();
         scrollToBottom();
     }
@@ -887,51 +845,57 @@
     function createNewChat() {
         saveCurrentChat();
         currentChatId = Date.now().toString();
-        hasSetTitle = false; // Reset title flag for new chat
+        hasSetTitle = false;
         messagesDiv.innerHTML = '';
         addMessageToUI('bot', '✨ New conversation started! Ask me anything about coding.', true);
+        showToast('New chat created');
         renderHistoryList();
     }
 
     function switchChat(chatId) {
         saveCurrentChat();
         currentChatId = chatId;
-        hasSetTitle = true; // Existing chat already has title
+        hasSetTitle = true;
         displayChat(chatId);
     }
 
     function togglePin(chatId) {
         chats[chatId].pinned = !chats[chatId].pinned;
-        localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+        localStorage.setItem('jarvis_chats_v5', JSON.stringify(chats));
         renderHistoryList();
+        showToast(chats[chatId].pinned ? 'Chat pinned' : 'Chat unpinned');
     }
 
     function deleteChat(chatId) {
-        if (confirm('Delete this chat?')) {
+        if (confirm('Are you sure you want to delete this chat? This action cannot be undone.')) {
+            const wasCurrent = (chatId === currentChatId);
             delete chats[chatId];
-            localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
-            if (chatId === currentChatId) {
-                if (Object.keys(chats).length > 0) {
-                    const firstChat = Object.keys(chats)[0];
-                    switchChat(firstChat);
+            localStorage.setItem('jarvis_chats_v5', JSON.stringify(chats));
+            
+            if (wasCurrent) {
+                const remainingChats = Object.keys(chats);
+                if (remainingChats.length > 0) {
+                    switchChat(remainingChats[0]);
                 } else {
                     createNewChat();
                 }
-            } else {
-                renderHistoryList();
             }
+            renderHistoryList();
+            showToast('Chat deleted successfully');
         }
     }
 
     function renameChat(chatId, newName) {
         if (newName && newName.trim()) {
             chats[chatId].title = newName.trim();
-            localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+            localStorage.setItem('jarvis_chats_v5', JSON.stringify(chats));
             renderHistoryList();
+            showToast('Chat renamed');
         }
     }
 
     function showContextMenu(event, chatId) {
+        event.preventDefault();
         const existingMenu = document.querySelector('.context-menu');
         if (existingMenu) existingMenu.remove();
         
@@ -964,7 +928,7 @@
                         break;
                     case 'rename':
                         const newName = prompt('Enter new chat name:', chats[chatId]?.title);
-                        renameChat(chatId, newName);
+                        if (newName) renameChat(chatId, newName);
                         break;
                     case 'delete':
                         deleteChat(chatId);
@@ -999,6 +963,7 @@
         reader.onload = function(event) {
             currentFileContent = event.target.result;
             addMessageToUI('user', `📁 Uploaded: ${file.name}\n\nContent:\n\`\`\`\n${currentFileContent.substring(0, 1500)}${currentFileContent.length > 1500 ? '...' : ''}\n\`\`\``, true);
+            showToast(`File "${file.name}" uploaded`);
         };
         reader.readAsText(file);
     }
@@ -1014,6 +979,7 @@
         reader.onload = function(event) {
             currentFileContent = event.target.result;
             addMessageToUI('user', `🖼️ Uploaded image: ${file.name}\n\nImage ready! Ask me to analyze or describe it.`, true);
+            showToast(`Image "${file.name}" uploaded`);
         };
         reader.readAsDataURL(file);
     }
@@ -1036,7 +1002,7 @@
             const codeId = 'code_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             return `<div class="code-block-wrapper" id="${codeId}">
                         <pre><code>${escapeHtml(code.trim())}</code></pre>
-                        <button class="copy-code-btn" onclick="copyCode('${codeId}')"><i class="fas fa-copy"></i> Copy</button>
+                        <button class="copy-code-btn" onclick="window.copyCodeFunction('${codeId}')"><i class="fas fa-copy"></i> Copy</button>
                     </div>`;
         });
         
@@ -1046,7 +1012,7 @@
         return formatted;
     }
 
-    window.copyCode = function(wrapperId) {
+    window.copyCodeFunction = function(wrapperId) {
         const wrapper = document.getElementById(wrapperId);
         if (wrapper) {
             const code = wrapper.querySelector('code');
@@ -1070,9 +1036,32 @@
         scrollToBottom();
         if (save) {
             saveCurrentChat();
-            // Update title if this was a user message and title not set
             if (role === 'user') {
                 updateChatTitleIfNeeded();
+            }
+        }
+    }
+
+    function updateChatTitleIfNeeded() {
+        if (hasSetTitle) return;
+        
+        let firstUserMessage = null;
+        document.querySelectorAll('.message.user-message').forEach(msg => {
+            if (!firstUserMessage) {
+                const bubble = msg.querySelector('.bubble');
+                if (bubble) {
+                    firstUserMessage = bubble.innerText || bubble.innerHTML;
+                }
+            }
+        });
+        
+        if (firstUserMessage && chats[currentChatId]) {
+            const newTitle = generateChatTitle(firstUserMessage);
+            if (chats[currentChatId].title === 'New Chat' || !chats[currentChatId].title) {
+                chats[currentChatId].title = newTitle;
+                localStorage.setItem('jarvis_chats_v5', JSON.stringify(chats));
+                renderHistoryList();
+                hasSetTitle = true;
             }
         }
     }

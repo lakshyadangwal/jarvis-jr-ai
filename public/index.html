@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jarvis Jr - AI Coding Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #0f172a;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main App Container - Full Screen */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            background: #f7f7f9;
+        }
+
+        /* Header - Modern Glass Effect */
+        .header {
+            background: rgba(44, 62, 80, 0.98);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .logo h1 span {
+            color: #3498db;
+        }
+
+        .logo p {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        .status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-badge {
+            background: #27ae60;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .clear-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: background 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Main Content - Flex Row */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Chat History */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #fafafa;
+        }
+
+        .sidebar-header h3 {
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background: #2980b9;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .history-item:hover {
+            background: #e8f4fd;
+            border-color: #3498db;
+        }
+
+        .history-item.active {
+            background: #e8f4fd;
+            border-color: #3498db;
+        }
+
+        .history-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-date {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .delete-history {
+            color: #e74c3c;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .history-item:hover .delete-history {
+            opacity: 1;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f7f7f9;
+        }
+
+        /* Messages Container */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Custom Scrollbar */
+        .messages::-webkit-scrollbar,
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .messages::-webkit-scrollbar-track,
+        .history-list::-webkit-scrollbar-track {
+            background: #e0e0e0;
+        }
+        .messages::-webkit-scrollbar-thumb,
+        .history-list::-webkit-scrollbar-thumb {
+            background: #b0b0b0;
+            border-radius: 3px;
+        }
+
+        /* Message Bubbles */
+        .message {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin: 0 8px;
+            flex-shrink: 0;
+        }
+
+        .user-message .avatar {
+            background: #3498db;
+            color: white;
+            order: 2;
+        }
+
+        .bot-message .avatar {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+
+        .user-message .bubble {
+            background: #3498db;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message .bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Code Formatting */
+        .bubble pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+
+        .bubble code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #e74c3c;
+        }
+
+        .user-message .bubble code {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        /* File Upload Preview */
+        .file-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.05);
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin: 4px 0;
+            font-size: 0.75rem;
+        }
+
+        /* Typing Indicator */
+        .typing {
+            display: flex;
+            gap: 4px;
+            padding: 12px 18px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 18px;
+            width: fit-content;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Input Area */
+        .input-area {
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .file-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .file-name {
+            font-size: 0.7rem;
+            color: #666;
+            margin-left: 8px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            padding: 12px 18px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+            max-height: 120px;
+        }
+
+        textarea:focus {
+            border-color: #3498db;
+        }
+
+        button {
+            background: #3498db;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .bubble {
+                max-width: 85%;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            color: white;
+            width: auto;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <div class="logo">
+            <h1>⚡ Jarvis Jr <span>| AI Coding Assistant</span></h1>
+            <p>Powered by Groq • Llama 3.3 70B • File Upload Supported</p>
+        </div>
+        <div class="status">
+            <span class="status-badge">● Online</span>
+            <button class="clear-btn" id="clearChatBtn">Clear Chat</button>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Sidebar for Chat History -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📋 Chat History</h3>
+                <button class="new-chat-btn" id="newChatBtn">+ New Chat</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- Chat history will appear here -->
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="messages" id="messages">
+                <div class="message bot-message">
+                    <div class="avatar">🤖</div>
+                    <div class="bubble">
+                        <strong>Hello! I'm Jarvis Jr.</strong><br><br>
+                        I can help you with:<br>
+                        • Algorithms & Data Structures<br>
+                        • Python, JavaScript, Java, C++<br>
+                        • Web Development<br>
+                        • Debugging & Code Reviews<br><br>
+                        <strong>📁 New Feature:</strong> You can upload images, documents, or code files!<br>
+                        <strong>Try asking:</strong> "Write a binary search in Python"
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="file-actions">
+                    <label class="file-btn">
+                        📄 Upload Document
+                        <input type="file" id="docUpload" accept=".txt,.md,.pdf,.docx,.json,.js,.py,.html,.css" style="display:none">
+                    </label>
+                    <label class="file-btn">
+                        🖼️ Upload Image
+                        <input type="file" id="imageUpload" accept="image/*" style="display:none">
+                    </label>
+                    <label class="file-btn">
+                        💻 Upload Code
+                        <input type="file" id="codeUpload" accept=".js,.py,.java,.cpp,.c,.html,.css,.json,.txt" style="display:none">
+                    </label>
+                    <span id="fileName" class="file-name"></span>
+                </div>
+                <div class="input-wrapper">
+                    <textarea id="input" placeholder="Ask a coding question... or upload a file first (Enter to send)" rows="1"></textarea>
+                    <button id="send">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const historyList = document.getElementById('historyList');
+    const fileNameSpan = document.getElementById('fileName');
+    
+    let currentChatId = Date.now().toString();
+    let chats = {};
+    let currentFileContent = null;
+    let currentFileName = null;
+
+    // Load chats from localStorage
+    function loadChats() {
+        const saved = localStorage.getItem('jarvis_chats');
+        if (saved) {
+            chats = JSON.parse(saved);
+        } else {
+            chats = {};
+        }
+        if (Object.keys(chats).length === 0) {
+            newChat();
+        } else {
+            const lastChat = Object.keys(chats).sort().pop();
+            currentChatId = lastChat;
+            displayChat(currentChatId);
+        }
+        renderHistoryList();
+    }
+
+    // Save current chat
+    function saveCurrentChat() {
+        const messages = [];
+        document.querySelectorAll('.message').forEach(msg => {
+            const isUser = msg.classList.contains('user-message');
+            const bubble = msg.querySelector('.bubble');
+            if (bubble && !msg.id?.includes('typing')) {
+                messages.push({
+                    role: isUser ? 'user' : 'bot',
+                    content: bubble.innerText || bubble.innerHTML
+                });
+            }
+        });
+        if (messages.length > 0) {
+            chats[currentChatId] = {
+                title: messages[0]?.content?.substring(0, 50) || 'New Chat',
+                date: new Date().toISOString(),
+                messages: messages
+            };
+            localStorage.setItem('jarvis_chats', JSON.stringify(chats));
+            renderHistoryList();
+        }
+    }
+
+    // Display chat
+    function displayChat(chatId) {
+        const chat = chats[chatId];
+        if (!chat) return;
+        
+        messagesDiv.innerHTML = '';
+        chat.messages.forEach(msg => {
+            addMessage(msg.role, msg.content, false);
+        });
+        currentChatId = chatId;
+        renderHistoryList();
+        scrollToBottom();
+    }
+
+    // Render history sidebar
+    function renderHistoryList() {
+        const sorted = Object.keys(chats).sort((a,b) => new Date(chats[b].date) - new Date(chats[a].date));
+        historyList.innerHTML = sorted.map(id => `
+            <div class="history-item ${id === currentChatId ? 'active' : ''}" onclick="switchChat('${id}')">
+                <div class="history-title">
+                    ${escapeHtml(chats[id].title)}
+                    <span class="delete-history" onclick="event.stopPropagation(); deleteChat('${id}')">🗑️</span>
+                </div>
+                <div class="history-date">${new Date(chats[id].date).toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    window.switchChat = function(id) {
+        saveCurrentChat();
+        currentChatId = id;
+        displayChat(id);
+    };
+
+    window.deleteChat = function(id) {
+        delete chats[id];
+        localStorage.setItem('jarvis_chats', JSON.stringify(chats));
+        if (id === currentChatId) {
+            newChat();
+        } else {
+            renderHistoryList();
+        }
+    };
+
+    function newChat() {
+        saveCurrentChat();
+        currentChatId = Date.now().toString();
+        messagesDiv.innerHTML = '';
+        addMessage('bot', '✨ New conversation started! Ask me anything about coding.', true);
+        currentChatId = Date.now().toString();
+        renderHistoryList();
+    }
+
+    // File upload handlers
+    document.getElementById('docUpload').addEventListener('change', handleFileUpload);
+    document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+    document.getElementById('codeUpload').addEventListener('change', handleFileUpload);
+
+    function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        currentFileName = file.name;
+        fileNameSpan.textContent = `📎 ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            currentFileContent = event.target.result;
+            addMessage('user', `📁 Uploaded: ${file.name}\n\nContent:\n\`\`\`\n${currentFileContent.substring(0, 1500)}${currentFileContent.length > 1500 ? '...' : ''}\n\`\`\``, true);
+        };
+        reader.readAsText(file);
+    }
+
+    function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        currentFileName = file.name;
+        fileNameSpan.textContent = `🖼️ ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            currentFileContent = event.target.result;
+            addMessage('user', `🖼️ Uploaded image: ${file.name}\n\nImage data received. I can help analyze or describe it if you ask!`, true);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function formatMessage(text) {
+        let formatted = text.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
+            return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
+        });
+        formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\n/g, '<br>');
+        return formatted;
+    }
+
+    function addMessage(role, content, save = true) {
+        const div = document.createElement('div');
+        div.className = 'message ' + (role === 'user' ? 'user-message' : 'bot-message');
+        div.innerHTML = '<div class="avatar">' + (role === 'user' ? '👤' : '🤖') + '</div>' +
+                       '<div class="bubble">' + (role === 'bot' ? formatMessage(content) : escapeHtml(content)) + '</div>';
+        messagesDiv.appendChild(div);
+        scrollToBottom();
+        if (save) saveCurrentChat();
+    }
+
+    function showTyping() {
+        const typing = document.createElement('div');
+        typing.id = 'typing';
+        typing.className = 'message bot-message';
+        typing.innerHTML = '<div class="avatar">🤖</div><div class="typing"><span></span><span></span><span></span></div>';
+        messagesDiv.appendChild(typing);
+        scrollToBottom();
+    }
+
+    function hideTyping() {
+        const el = document.getElementById('typing');
+        if (el) el.remove();
+    }
+
+    function scrollToBottom() {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function autoResize() {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    }
+
+    async function sendMessage() {
+        let message = input.value.trim();
+        
+        if (currentFileContent && !message) {
+            message = `I've uploaded a file named "${currentFileName}". Please analyze it and help me with: `;
+        }
+        
+        if (!message) return;
+        
+        if (currentFileContent) {
+            message = `File: ${currentFileName}\nContent:\n${currentFileContent.substring(0, 3000)}\n\nMy question: ${message}`;
+            currentFileContent = null;
+            currentFileName = null;
+            fileNameSpan.textContent = '';
+        }
+        
+        sendBtn.disabled = true;
+        addMessage('user', message, true);
+        input.value = '';
+        autoResize();
+        showTyping();
+        
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await res.json();
+            hideTyping();
+            if (data.response) {
+                addMessage('bot', data.response, true);
+            } else {
+                addMessage('bot', '⚠️ Error: ' + (data.error || 'Unknown error'), true);
+            }
+        } catch (err) {
+            hideTyping();
+            addMessage('bot', '❌ Cannot connect to server. Run: node server.js', true);
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+
+    clearChatBtn.addEventListener('click', () => {
+        if (confirm('Clear current chat?')) {
+            messagesDiv.innerHTML = '';
+            addMessage('bot', '✨ Chat cleared! Ask me anything.', true);
+        }
+    });
+
+    newChatBtn.addEventListener('click', () => {
+        saveCurrentChat();
+        newChat();
+    });
+
+    document.getElementById('menuToggle')?.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    input.addEventListener('input', autoResize);
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    sendBtn.addEventListener('click', sendMessage);
+    
+    loadChats();
+    input.focus();
+</script>
+</body>
+</html>

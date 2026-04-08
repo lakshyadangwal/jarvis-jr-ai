@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Jarvis Jr - AI Coding Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -17,88 +18,18 @@
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* Main App Container - Full Screen */
         .app {
             display: flex;
-            flex-direction: column;
             height: 100vh;
             width: 100%;
             background: #f7f7f9;
         }
 
-        /* Header - Modern Glass Effect */
-        .header {
-            background: rgba(44, 62, 80, 0.98);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .logo h1 span {
-            color: #3498db;
-        }
-
-        .logo p {
-            font-size: 0.7rem;
-            opacity: 0.7;
-            margin-top: 2px;
-        }
-
-        .status {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .status-badge {
-            background: #27ae60;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-
-        .clear-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            transition: background 0.2s;
-        }
-
-        .clear-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* Main Content - Flex Row */
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* Sidebar - Chat History */
+        /* Sidebar */
         .sidebar {
-            width: 280px;
+            width: 320px;
             background: white;
             border-right: 1px solid #e0e0e0;
             display: flex;
@@ -107,31 +38,66 @@
         }
 
         .sidebar-header {
-            padding: 16px;
+            padding: 20px;
             border-bottom: 1px solid #e0e0e0;
-            background: #fafafa;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
         }
 
-        .sidebar-header h3 {
-            font-size: 0.9rem;
-            color: #333;
-            margin-bottom: 8px;
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-top: 12px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 35px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.6);
         }
 
         .new-chat-btn {
             width: 100%;
-            padding: 10px;
-            background: #3498db;
+            padding: 12px;
+            background: #27ae60;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             transition: background 0.2s;
         }
 
         .new-chat-btn:hover {
-            background: #2980b9;
+            background: #219a52;
         }
 
         .history-list {
@@ -141,13 +107,14 @@
         }
 
         .history-item {
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 8px;
             background: #f8f9fa;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
             border: 1px solid #e0e0e0;
+            position: relative;
         }
 
         .history-item:hover {
@@ -158,34 +125,89 @@
         .history-item.active {
             background: #e8f4fd;
             border-color: #3498db;
+            border-left: 3px solid #3498db;
+        }
+
+        .history-item.pinned {
+            background: #fff9e6;
+            border-color: #f39c12;
         }
 
         .history-title {
             font-size: 0.85rem;
             font-weight: 500;
             color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-title span {
+            flex: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .history-date {
-            font-size: 0.7rem;
-            color: #999;
-            margin-top: 4px;
-        }
-
-        .delete-history {
-            color: #e74c3c;
-            font-size: 0.7rem;
-            margin-left: 8px;
-            cursor: pointer;
+        .history-actions {
+            display: flex;
+            gap: 8px;
             opacity: 0;
             transition: opacity 0.2s;
         }
 
-        .history-item:hover .delete-history {
+        .history-item:hover .history-actions {
             opacity: 1;
+        }
+
+        .history-actions i {
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .history-actions i:hover {
+            color: #3498db;
+        }
+
+        .history-actions i.fa-thumbtack {
+            color: #f39c12;
+        }
+
+        .history-date {
+            font-size: 0.65rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            min-width: 160px;
+            overflow: hidden;
+        }
+
+        .context-menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .context-menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        .context-menu-item i {
+            width: 20px;
+            color: #666;
         }
 
         /* Chat Area */
@@ -194,10 +216,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background: #f7f7f9;
         }
 
-        /* Messages Container */
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -207,7 +227,6 @@
             gap: 16px;
         }
 
-        /* Custom Scrollbar */
         .messages::-webkit-scrollbar,
         .history-list::-webkit-scrollbar {
             width: 6px;
@@ -222,7 +241,6 @@
             border-radius: 3px;
         }
 
-        /* Message Bubbles */
         .message {
             display: flex;
             animation: fadeIn 0.2s ease;
@@ -271,6 +289,7 @@
             line-height: 1.5;
             font-size: 0.9rem;
             word-wrap: break-word;
+            position: relative;
         }
 
         .user-message .bubble {
@@ -287,16 +306,42 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* Code Formatting */
-        .bubble pre {
+        /* Code Block with Copy Button */
+        .code-block-wrapper {
+            position: relative;
+            margin: 8px 0;
+        }
+
+        .code-block-wrapper pre {
             background: #1e1e1e;
             color: #d4d4d4;
             padding: 12px;
+            padding-right: 40px;
             border-radius: 8px;
             overflow-x: auto;
-            margin: 8px 0;
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .copy-code-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            width: auto;
+            height: auto;
+        }
+
+        .copy-code-btn:hover {
+            background: #2980b9;
+            transform: none;
         }
 
         .bubble code {
@@ -308,24 +353,6 @@
             color: #e74c3c;
         }
 
-        .user-message .bubble code {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-        }
-
-        /* File Upload Preview */
-        .file-preview {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,0,0,0.05);
-            padding: 4px 8px;
-            border-radius: 12px;
-            margin: 4px 0;
-            font-size: 0.75rem;
-        }
-
-        /* Typing Indicator */
         .typing {
             display: flex;
             gap: 4px;
@@ -334,7 +361,6 @@
             border: 1px solid #e0e0e0;
             border-radius: 18px;
             width: fit-content;
-            border-bottom-left-radius: 4px;
         }
 
         .typing span {
@@ -347,10 +373,9 @@
 
         @keyframes blink {
             0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
-            30% { opacity: 1; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Input Area */
         .input-area {
             background: white;
             padding: 16px 20px;
@@ -359,25 +384,31 @@
 
         .file-actions {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
         }
 
         .file-btn {
             background: #f0f0f0;
             border: 1px solid #ddd;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.75rem;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
         .file-btn:hover {
             background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        .file-btn i {
+            font-size: 1rem;
         }
 
         .file-name {
@@ -418,11 +449,15 @@
             cursor: pointer;
             color: white;
             font-size: 1.2rem;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         button:hover:not(:disabled) {
             background: #2980b9;
+            transform: scale(1.05);
         }
 
         button:disabled {
@@ -430,11 +465,55 @@
             cursor: not-allowed;
         }
 
-        /* Responsive */
+        .voice-btn {
+            background: #e74c3c;
+        }
+
+        .voice-btn:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        .voice-btn.recording {
+            background: #c0392b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .info {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 10001;
+            animation: fadeInOut 2s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
-                left: -280px;
+                left: -320px;
                 top: 0;
                 height: 100vh;
                 z-index: 1000;
@@ -444,116 +523,196 @@
             .sidebar.open {
                 left: 0;
             }
-            .menu-toggle {
-                display: block;
-            }
             .bubble {
                 max-width: 85%;
             }
-        }
-
-        .menu-toggle {
-            display: none;
-            background: transparent;
-            color: white;
-            width: auto;
-            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
 <div class="app">
-    <div class="header">
-        <div class="logo">
-            <h1>⚡ Jarvis Jr <span>| AI Coding Assistant</span></h1>
-            <p>Powered by Groq • Llama 3.3 70B • File Upload Supported</p>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-robot"></i> Jarvis Jr</h2>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchChats" placeholder="Search chats...">
+            </div>
+            <button class="new-chat-btn" id="newChatBtn">
+                <i class="fas fa-plus"></i> New Chat
+            </button>
         </div>
-        <div class="status">
-            <span class="status-badge">● Online</span>
-            <button class="clear-btn" id="clearChatBtn">Clear Chat</button>
-            <button class="menu-toggle" id="menuToggle">☰</button>
-        </div>
+        <div class="history-list" id="historyList"></div>
     </div>
 
-    <div class="main-content">
-        <!-- Sidebar for Chat History -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>📋 Chat History</h3>
-                <button class="new-chat-btn" id="newChatBtn">+ New Chat</button>
-            </div>
-            <div class="history-list" id="historyList">
-                <!-- Chat history will appear here -->
+    <div class="chat-area">
+        <div class="messages" id="messages">
+            <div class="message bot-message">
+                <div class="avatar"><i class="fas fa-robot"></i></div>
+                <div class="bubble">
+                    <strong>✨ Hello! I'm Jarvis Jr.</strong><br><br>
+                    <strong>🎯 Features:</strong><br>
+                    • 📋 <strong>Copy Code</strong> - Click copy button on any code block<br>
+                    • 🎤 <strong>Voice Input</strong> - Works on Chrome, Firefox, Edge, Brave<br>
+                    • 🔍 <strong>Search Chats</strong> - Type in search box above<br>
+                    • 📌 <strong>Pin Chats</strong> - Click pin icon on any chat<br>
+                    • 🖱️ <strong>Right-Click Menu</strong> - Right-click on any chat<br>
+                    • ✏️ <strong>Auto Titles</strong> - Chats get named after your question<br>
+                    • 📁 <strong>File Upload</strong> - Upload docs, images, code<br><br>
+                    <strong>Try asking:</strong> "Write a binary search in Python"
+                </div>
             </div>
         </div>
 
-        <!-- Chat Area -->
-        <div class="chat-area">
-            <div class="messages" id="messages">
-                <div class="message bot-message">
-                    <div class="avatar">🤖</div>
-                    <div class="bubble">
-                        <strong>Hello! I'm Jarvis Jr.</strong><br><br>
-                        I can help you with:<br>
-                        • Algorithms & Data Structures<br>
-                        • Python, JavaScript, Java, C++<br>
-                        • Web Development<br>
-                        • Debugging & Code Reviews<br><br>
-                        <strong>📁 New Feature:</strong> You can upload images, documents, or code files!<br>
-                        <strong>Try asking:</strong> "Write a binary search in Python"
-                    </div>
-                </div>
+        <div class="input-area">
+            <div class="file-actions">
+                <label class="file-btn">
+                    <i class="fas fa-file-alt"></i> Document
+                    <input type="file" id="docUpload" accept=".txt,.md,.json" style="display:none">
+                </label>
+                <label class="file-btn">
+                    <i class="fas fa-image"></i> Photo
+                    <input type="file" id="imageUpload" accept="image/*" style="display:none">
+                </label>
+                <label class="file-btn">
+                    <i class="fas fa-code"></i> Code
+                    <input type="file" id="codeUpload" accept=".js,.py,.java,.cpp,.c,.html,.css,.json" style="display:none">
+                </label>
+                <span id="fileName" class="file-name"></span>
             </div>
-
-            <div class="input-area">
-                <div class="file-actions">
-                    <label class="file-btn">
-                        📄 Upload Document
-                        <input type="file" id="docUpload" accept=".txt,.md,.pdf,.docx,.json,.js,.py,.html,.css" style="display:none">
-                    </label>
-                    <label class="file-btn">
-                        🖼️ Upload Image
-                        <input type="file" id="imageUpload" accept="image/*" style="display:none">
-                    </label>
-                    <label class="file-btn">
-                        💻 Upload Code
-                        <input type="file" id="codeUpload" accept=".js,.py,.java,.cpp,.c,.html,.css,.json,.txt" style="display:none">
-                    </label>
-                    <span id="fileName" class="file-name"></span>
-                </div>
-                <div class="input-wrapper">
-                    <textarea id="input" placeholder="Ask a coding question... or upload a file first (Enter to send)" rows="1"></textarea>
-                    <button id="send">➤</button>
-                </div>
+            <div class="input-wrapper">
+                <textarea id="input" placeholder="Ask a coding question... (Enter to send)" rows="1"></textarea>
+                <button id="voiceBtn" class="voice-btn" title="Voice input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="info">
+                <i class="fas fa-microphone"></i> Voice works on all browsers • 
+                <i class="fas fa-copy"></i> Copy any code block • 
+                <i class="fas fa-thumbtack"></i> Pin important chats
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // DOM Elements
     const messagesDiv = document.getElementById('messages');
     const input = document.getElementById('input');
-    const sendBtn = document.getElementById('send');
-    const clearChatBtn = document.getElementById('clearChatBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
     const newChatBtn = document.getElementById('newChatBtn');
-    const historyList = document.getElementById('historyList');
+    const historyListDiv = document.getElementById('historyList');
     const fileNameSpan = document.getElementById('fileName');
+    const searchInput = document.getElementById('searchChats');
     
+    // State
     let currentChatId = Date.now().toString();
     let chats = {};
     let currentFileContent = null;
     let currentFileName = null;
+    let isRecording = false;
+    let recognition = null;
+    let hasSetTitle = false; // Track if title has been set for current chat
 
-    // Load chats from localStorage
+    // ============ VOICE RECOGNITION (Cross-Browser Support) ============
+    function initVoiceRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || 
+                                  window.webkitSpeechRecognition || 
+                                  window.mozSpeechRecognition || 
+                                  window.msSpeechRecognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                input.value = transcript;
+                autoResize();
+                sendMessage();
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                let errorMsg = '';
+                switch(event.error) {
+                    case 'not-allowed':
+                        errorMsg = 'Microphone access denied. Please allow microphone access.';
+                        break;
+                    case 'no-speech':
+                        errorMsg = 'No speech detected. Please try again.';
+                        break;
+                    default:
+                        errorMsg = 'Voice error: ' + event.error;
+                }
+                showToast(errorMsg, 'error');
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                isRecording = false;
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                isRecording = false;
+            };
+            
+            return true;
+        } else {
+            showToast('Voice recognition not supported in this browser. Try Chrome, Edge, or Firefox!', 'error');
+            voiceBtn.style.opacity = '0.5';
+            voiceBtn.disabled = true;
+            return false;
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
+    voiceBtn.addEventListener('click', () => {
+        if (!recognition) {
+            initVoiceRecognition();
+            if (!recognition) return;
+        }
+        
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            try {
+                recognition.start();
+                isRecording = true;
+                voiceBtn.classList.add('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            } catch (err) {
+                console.error('Start error:', err);
+                showToast('Please click the mic button again', 'error');
+            }
+        }
+    });
+
+    // ============ CHAT STORAGE ============
     function loadChats() {
-        const saved = localStorage.getItem('jarvis_chats');
+        const saved = localStorage.getItem('jarvis_chats_v4');
         if (saved) {
             chats = JSON.parse(saved);
         } else {
             chats = {};
         }
         if (Object.keys(chats).length === 0) {
-            newChat();
+            createNewChat();
         } else {
             const lastChat = Object.keys(chats).sort().pop();
             currentChatId = lastChat;
@@ -562,84 +721,269 @@
         renderHistoryList();
     }
 
-    // Save current chat
+    // Generate meaningful chat title from user message
+    function generateChatTitle(message) {
+        // Remove code blocks
+        let title = message.replace(/```[\s\S]*?```/g, '');
+        // Remove file upload prefixes
+        title = title.replace(/^📁 Uploaded:.*?\n\n/, '');
+        title = title.replace(/^🖼️ Uploaded image:.*?\n\n/, '');
+        // Clean up
+        title = title.trim();
+        // Limit to 50 characters
+        if (title.length > 50) {
+            title = title.substring(0, 47) + '...';
+        }
+        if (title.length === 0) {
+            title = 'New Chat';
+        }
+        return title;
+    }
+
+    // Update chat title based on first user message
+    function updateChatTitleIfNeeded() {
+        if (hasSetTitle) return;
+        
+        // Find first user message
+        let firstUserMessage = null;
+        document.querySelectorAll('.message.user-message').forEach(msg => {
+            if (!firstUserMessage) {
+                const bubble = msg.querySelector('.bubble');
+                if (bubble) {
+                    firstUserMessage = bubble.innerText || bubble.innerHTML;
+                }
+            }
+        });
+        
+        if (firstUserMessage && chats[currentChatId]) {
+            const newTitle = generateChatTitle(firstUserMessage);
+            if (chats[currentChatId].title === 'New Chat' || !chats[currentChatId].title) {
+                chats[currentChatId].title = newTitle;
+                localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+                renderHistoryList();
+                hasSetTitle = true;
+            }
+        }
+    }
+
     function saveCurrentChat() {
         const messages = [];
+        let firstUserMessage = '';
+        
         document.querySelectorAll('.message').forEach(msg => {
             const isUser = msg.classList.contains('user-message');
             const bubble = msg.querySelector('.bubble');
             if (bubble && !msg.id?.includes('typing')) {
+                let content = bubble.innerText || bubble.innerHTML;
+                // Clean HTML for storage
+                if (!isUser) {
+                    // For bot messages, we need to preserve code blocks
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = content;
+                    content = tempDiv.innerText;
+                }
                 messages.push({
                     role: isUser ? 'user' : 'bot',
-                    content: bubble.innerText || bubble.innerHTML
+                    content: content
                 });
+                if (isUser && !firstUserMessage) {
+                    firstUserMessage = content;
+                }
             }
         });
+        
         if (messages.length > 0) {
+            if (!chats[currentChatId]) {
+                chats[currentChatId] = {};
+            }
+            // Only set title if it doesn't exist or is still "New Chat"
+            if (!chats[currentChatId].title || chats[currentChatId].title === 'New Chat') {
+                if (firstUserMessage) {
+                    chats[currentChatId].title = generateChatTitle(firstUserMessage);
+                } else {
+                    chats[currentChatId].title = 'New Chat';
+                }
+            }
             chats[currentChatId] = {
-                title: messages[0]?.content?.substring(0, 50) || 'New Chat',
-                date: new Date().toISOString(),
-                messages: messages
+                title: chats[currentChatId].title,
+                date: chats[currentChatId]?.date || new Date().toISOString(),
+                messages: messages,
+                pinned: chats[currentChatId]?.pinned || false
             };
-            localStorage.setItem('jarvis_chats', JSON.stringify(chats));
+            localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
             renderHistoryList();
         }
     }
 
-    // Display chat
     function displayChat(chatId) {
         const chat = chats[chatId];
         if (!chat) return;
         
         messagesDiv.innerHTML = '';
         chat.messages.forEach(msg => {
-            addMessage(msg.role, msg.content, false);
+            addMessageToUI(msg.role, msg.content, false);
         });
         currentChatId = chatId;
+        hasSetTitle = true; // Title already exists for this chat
         renderHistoryList();
         scrollToBottom();
     }
 
-    // Render history sidebar
     function renderHistoryList() {
-        const sorted = Object.keys(chats).sort((a,b) => new Date(chats[b].date) - new Date(chats[a].date));
-        historyList.innerHTML = sorted.map(id => `
-            <div class="history-item ${id === currentChatId ? 'active' : ''}" onclick="switchChat('${id}')">
+        const searchTerm = searchInput.value.toLowerCase();
+        const sorted = Object.keys(chats).sort((a,b) => {
+            const pinnedA = chats[a].pinned || false;
+            const pinnedB = chats[b].pinned || false;
+            if (pinnedA !== pinnedB) return pinnedB - pinnedA;
+            return new Date(chats[b].date) - new Date(chats[a].date);
+        });
+        
+        const filtered = sorted.filter(id => 
+            chats[id].title.toLowerCase().includes(searchTerm)
+        );
+        
+        historyListDiv.innerHTML = filtered.map(id => `
+            <div class="history-item ${id === currentChatId ? 'active' : ''} ${chats[id].pinned ? 'pinned' : ''}" 
+                 data-chat-id="${id}">
                 <div class="history-title">
-                    ${escapeHtml(chats[id].title)}
-                    <span class="delete-history" onclick="event.stopPropagation(); deleteChat('${id}')">🗑️</span>
+                    <span>${chats[id].pinned ? '📌 ' : ''}${escapeHtml(chats[id].title)}</span>
+                    <div class="history-actions">
+                        <i class="fas fa-thumbtack" data-action="pin" data-id="${id}" title="Pin/Unpin"></i>
+                        <i class="fas fa-trash" data-action="delete" data-id="${id}" title="Delete"></i>
+                    </div>
                 </div>
                 <div class="history-date">${new Date(chats[id].date).toLocaleString()}</div>
             </div>
         `).join('');
+        
+        // Attach event listeners
+        document.querySelectorAll('[data-action="pin"]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePin(el.dataset.id);
+            });
+        });
+        
+        document.querySelectorAll('[data-action="delete"]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteChat(el.dataset.id);
+            });
+        });
+        
+        document.querySelectorAll('.history-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                if (!e.target.closest('.history-actions')) {
+                    switchChat(el.dataset.chatId);
+                }
+            });
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e, el.dataset.chatId);
+            });
+        });
     }
 
-    window.switchChat = function(id) {
-        saveCurrentChat();
-        currentChatId = id;
-        displayChat(id);
-    };
-
-    window.deleteChat = function(id) {
-        delete chats[id];
-        localStorage.setItem('jarvis_chats', JSON.stringify(chats));
-        if (id === currentChatId) {
-            newChat();
-        } else {
-            renderHistoryList();
-        }
-    };
-
-    function newChat() {
+    function createNewChat() {
         saveCurrentChat();
         currentChatId = Date.now().toString();
+        hasSetTitle = false; // Reset title flag for new chat
         messagesDiv.innerHTML = '';
-        addMessage('bot', '✨ New conversation started! Ask me anything about coding.', true);
-        currentChatId = Date.now().toString();
+        addMessageToUI('bot', '✨ New conversation started! Ask me anything about coding.', true);
         renderHistoryList();
     }
 
-    // File upload handlers
+    function switchChat(chatId) {
+        saveCurrentChat();
+        currentChatId = chatId;
+        hasSetTitle = true; // Existing chat already has title
+        displayChat(chatId);
+    }
+
+    function togglePin(chatId) {
+        chats[chatId].pinned = !chats[chatId].pinned;
+        localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+        renderHistoryList();
+    }
+
+    function deleteChat(chatId) {
+        if (confirm('Delete this chat?')) {
+            delete chats[chatId];
+            localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+            if (chatId === currentChatId) {
+                if (Object.keys(chats).length > 0) {
+                    const firstChat = Object.keys(chats)[0];
+                    switchChat(firstChat);
+                } else {
+                    createNewChat();
+                }
+            } else {
+                renderHistoryList();
+            }
+        }
+    }
+
+    function renameChat(chatId, newName) {
+        if (newName && newName.trim()) {
+            chats[chatId].title = newName.trim();
+            localStorage.setItem('jarvis_chats_v4', JSON.stringify(chats));
+            renderHistoryList();
+        }
+    }
+
+    function showContextMenu(event, chatId) {
+        const existingMenu = document.querySelector('.context-menu');
+        if (existingMenu) existingMenu.remove();
+        
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.style.top = event.pageY + 'px';
+        menu.style.left = event.pageX + 'px';
+        menu.innerHTML = `
+            <div class="context-menu-item" data-action="pin">
+                <i class="fas fa-thumbtack"></i> ${chats[chatId]?.pinned ? 'Unpin' : 'Pin'} Chat
+            </div>
+            <div class="context-menu-item" data-action="rename">
+                <i class="fas fa-edit"></i> Rename Chat
+            </div>
+            <div class="context-menu-item" data-action="delete">
+                <i class="fas fa-trash"></i> Delete Chat
+            </div>
+            <div class="context-menu-item" data-action="open">
+                <i class="fas fa-comment"></i> Open Chat
+            </div>
+        `;
+        document.body.appendChild(menu);
+        
+        const handleClick = (e) => {
+            const action = e.target.closest('.context-menu-item')?.dataset.action;
+            if (action) {
+                switch(action) {
+                    case 'pin':
+                        togglePin(chatId);
+                        break;
+                    case 'rename':
+                        const newName = prompt('Enter new chat name:', chats[chatId]?.title);
+                        renameChat(chatId, newName);
+                        break;
+                    case 'delete':
+                        deleteChat(chatId);
+                        break;
+                    case 'open':
+                        switchChat(chatId);
+                        break;
+                }
+            }
+            menu.remove();
+            document.removeEventListener('click', handleClick);
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', handleClick);
+        }, 10);
+    }
+
+    // ============ FILE UPLOADS ============
     document.getElementById('docUpload').addEventListener('change', handleFileUpload);
     document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
     document.getElementById('codeUpload').addEventListener('change', handleFileUpload);
@@ -649,12 +993,12 @@
         if (!file) return;
         
         currentFileName = file.name;
-        fileNameSpan.textContent = `📎 ${file.name}`;
+        fileNameSpan.innerHTML = `<i class="fas fa-paperclip"></i> ${file.name}`;
         
         const reader = new FileReader();
         reader.onload = function(event) {
             currentFileContent = event.target.result;
-            addMessage('user', `📁 Uploaded: ${file.name}\n\nContent:\n\`\`\`\n${currentFileContent.substring(0, 1500)}${currentFileContent.length > 1500 ? '...' : ''}\n\`\`\``, true);
+            addMessageToUI('user', `📁 Uploaded: ${file.name}\n\nContent:\n\`\`\`\n${currentFileContent.substring(0, 1500)}${currentFileContent.length > 1500 ? '...' : ''}\n\`\`\``, true);
         };
         reader.readAsText(file);
     }
@@ -664,17 +1008,19 @@
         if (!file) return;
         
         currentFileName = file.name;
-        fileNameSpan.textContent = `🖼️ ${file.name}`;
+        fileNameSpan.innerHTML = `<i class="fas fa-image"></i> ${file.name}`;
         
         const reader = new FileReader();
         reader.onload = function(event) {
             currentFileContent = event.target.result;
-            addMessage('user', `🖼️ Uploaded image: ${file.name}\n\nImage data received. I can help analyze or describe it if you ask!`, true);
+            addMessageToUI('user', `🖼️ Uploaded image: ${file.name}\n\nImage ready! Ask me to analyze or describe it.`, true);
         };
         reader.readAsDataURL(file);
     }
 
+    // ============ UI HELPERS ============
     function escapeHtml(str) {
+        if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
@@ -684,30 +1030,58 @@
     }
 
     function formatMessage(text) {
+        if (!text) return '';
+        
         let formatted = text.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
-            return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
+            const codeId = 'code_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            return `<div class="code-block-wrapper" id="${codeId}">
+                        <pre><code>${escapeHtml(code.trim())}</code></pre>
+                        <button class="copy-code-btn" onclick="copyCode('${codeId}')"><i class="fas fa-copy"></i> Copy</button>
+                    </div>`;
         });
+        
         formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
         formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         formatted = formatted.replace(/\n/g, '<br>');
         return formatted;
     }
 
-    function addMessage(role, content, save = true) {
+    window.copyCode = function(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        if (wrapper) {
+            const code = wrapper.querySelector('code');
+            if (code) {
+                const text = code.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('✅ Code copied to clipboard!');
+                }).catch(() => {
+                    showToast('Failed to copy code', 'error');
+                });
+            }
+        }
+    };
+
+    function addMessageToUI(role, content, save = true) {
         const div = document.createElement('div');
         div.className = 'message ' + (role === 'user' ? 'user-message' : 'bot-message');
-        div.innerHTML = '<div class="avatar">' + (role === 'user' ? '👤' : '🤖') + '</div>' +
+        div.innerHTML = '<div class="avatar">' + (role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>') + '</div>' +
                        '<div class="bubble">' + (role === 'bot' ? formatMessage(content) : escapeHtml(content)) + '</div>';
         messagesDiv.appendChild(div);
         scrollToBottom();
-        if (save) saveCurrentChat();
+        if (save) {
+            saveCurrentChat();
+            // Update title if this was a user message and title not set
+            if (role === 'user') {
+                updateChatTitleIfNeeded();
+            }
+        }
     }
 
     function showTyping() {
         const typing = document.createElement('div');
         typing.id = 'typing';
         typing.className = 'message bot-message';
-        typing.innerHTML = '<div class="avatar">🤖</div><div class="typing"><span></span><span></span><span></span></div>';
+        typing.innerHTML = '<div class="avatar"><i class="fas fa-robot"></i></div><div class="typing"><span></span><span></span><span></span></div>';
         messagesDiv.appendChild(typing);
         scrollToBottom();
     }
@@ -726,11 +1100,12 @@
         input.style.height = Math.min(input.scrollHeight, 120) + 'px';
     }
 
+    // ============ SEND MESSAGE ============
     async function sendMessage() {
         let message = input.value.trim();
         
         if (currentFileContent && !message) {
-            message = `I've uploaded a file named "${currentFileName}". Please analyze it and help me with: `;
+            message = `I've uploaded a file named "${currentFileName}". Please analyze it.`;
         }
         
         if (!message) return;
@@ -739,11 +1114,11 @@
             message = `File: ${currentFileName}\nContent:\n${currentFileContent.substring(0, 3000)}\n\nMy question: ${message}`;
             currentFileContent = null;
             currentFileName = null;
-            fileNameSpan.textContent = '';
+            fileNameSpan.innerHTML = '';
         }
         
         sendBtn.disabled = true;
-        addMessage('user', message, true);
+        addMessageToUI('user', message, true);
         input.value = '';
         autoResize();
         showTyping();
@@ -757,37 +1132,31 @@
             const data = await res.json();
             hideTyping();
             if (data.response) {
-                addMessage('bot', data.response, true);
+                addMessageToUI('bot', data.response, true);
             } else {
-                addMessage('bot', '⚠️ Error: ' + (data.error || 'Unknown error'), true);
+                addMessageToUI('bot', '⚠️ Error: ' + (data.error || 'Unknown error'), true);
             }
         } catch (err) {
             hideTyping();
-            addMessage('bot', '❌ Cannot connect to server. Run: node server.js', true);
+            addMessageToUI('bot', '❌ Cannot connect to server. Run: node server.js', true);
         } finally {
             sendBtn.disabled = false;
             input.focus();
         }
     }
 
-    clearChatBtn.addEventListener('click', () => {
-        if (confirm('Clear current chat?')) {
-            messagesDiv.innerHTML = '';
-            addMessage('bot', '✨ Chat cleared! Ask me anything.', true);
-        }
-    });
-
+    // ============ EVENT LISTENERS ============
     newChatBtn.addEventListener('click', () => {
         saveCurrentChat();
-        newChat();
+        createNewChat();
     });
 
-    document.getElementById('menuToggle')?.addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('open');
+    searchInput.addEventListener('input', () => {
+        renderHistoryList();
     });
 
     input.addEventListener('input', autoResize);
-    input.addEventListener('keydown', function(e) {
+    input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
@@ -796,6 +1165,8 @@
     
     sendBtn.addEventListener('click', sendMessage);
     
+    // Initialize
+    initVoiceRecognition();
     loadChats();
     input.focus();
 </script>
